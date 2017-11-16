@@ -1,0 +1,35 @@
+{
+  "name": "api-bench-runner",
+  "version": "1.0.0",
+  "description": "CLI Runner for API-Benchmark",
+  "main": "index.js",
+  "scripts": {
+    "test": "JUNIT_REPORT_PATH=./reports/test-report.xml node_modules/.bin/istanbul cover --dir=reports/coverage _mocha -- --reporter mocha-jenkins-reporter --recursive test",
+    "watch": "npm test -- --watch",
+    "lint": "node_modules/.bin/eslint ./; true",
+    "ci-lint": "mkdir -p ./reports && node_modules/.bin/eslint -f checkstyle ./ > ./reports/checkstyle.xml; true"
+  },
+  "keywords": [
+    "cli",
+    "runner",
+    "api-benchmark",
+    "benchmark"
+  ],
+  "author": "Brad van der Laan <brad.vanderlaan@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "eslint": "^4.10.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.8.0",
+    "istanbul": "^0.4.5",
+    "mocha": "^4.0.1",
+    "mocha-jenkins-reporter": "^0.3.10",
+    "sinon": "^4.1.2",
+    "sinon-chai": "^2.14.0"
+  },
+  "dependencies": {
+    "api-benchmark": "^0.4.2"
+  }
+}
