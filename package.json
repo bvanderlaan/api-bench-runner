@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "CLI Runner for API-Benchmark",
   "main": "index.js",
+  "bin": {
+    "api-bench-runner": "./bin/api-bench-runner",
+    "abr": "./bin/api-bench-runner"
+  },
   "scripts": {
     "test": "JUNIT_REPORT_PATH=./reports/test-report.xml node_modules/.bin/istanbul cover --dir=reports/coverage _mocha -- --reporter mocha-jenkins-reporter --recursive test",
     "watch": "npm test -- --watch",
@@ -34,6 +38,7 @@
   "dependencies": {
     "api-benchmark": "^0.4.2",
     "bluebird": "^3.5.1",
-    "cli-color": "^1.2.0"
+    "cli-color": "^1.2.0",
+    "commander": "^2.11.0"
   }
 }
