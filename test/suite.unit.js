@@ -34,6 +34,40 @@ describe('Suite', () => {
         'my service': 'http://localhost:1234',
       });
     });
+
+    it('should get services from parent suite', () => {
+      const parentSuite = new Suite();
+      parentSuite.addServiceHook('my service', 'http://localhost:1234');
+      parentSuite.setServiceHooks[0]();
+      expect(parentSuite.services).to.deep.equals({
+        'my service': 'http://localhost:1234',
+      });
+
+      // Test...
+      const childSuite = new Suite('child', parentSuite);
+      expect(childSuite.services).to.deep.equals({
+        'my service': 'http://localhost:1234',
+      });
+    });
+
+    it('should concat child and parent services', () => {
+      const parentSuite = new Suite();
+      parentSuite.addServiceHook('my service', 'http://localhost:1234');
+      parentSuite.setServiceHooks[0]();
+      expect(parentSuite.services).to.deep.equals({
+        'my service': 'http://localhost:1234',
+      });
+
+      // Test...
+      const childSuite = new Suite('child', parentSuite);
+      childSuite.addServiceHook('my other service', 'http://localhost:5678');
+      childSuite.setServiceHooks[0]();
+
+      expect(childSuite.services).to.deep.equals({
+        'my service': 'http://localhost:1234',
+        'my other service': 'http://localhost:5678',
+      });
+    });
   });
 
   describe('Route', () => {
@@ -61,6 +95,77 @@ describe('Suite', () => {
         },
       });
     });
+
+    it('should get services from parent suite', () => {
+      const parentSuite = new Suite();
+      parentSuite.addRoute('status', {
+        method: 'get',
+        route: 'status',
+        expectedStatusCode: 200,
+        maxMean: 0.2, // 200ms
+      });
+      expect(parentSuite.routes).to.deep.equals({
+        status: {
+          method: 'get',
+          route: 'status',
+          expectedStatusCode: 200,
+          maxMean: 0.2, // 200ms
+        },
+      });
+
+      // Test...
+      const childSuite = new Suite('child', parentSuite);
+      expect(childSuite.routes).to.deep.equals({
+        status: {
+          method: 'get',
+          route: 'status',
+          expectedStatusCode: 200,
+          maxMean: 0.2, // 200ms
+        },
+      });
+    });
+
+    it('should concat child and parent routes', () => {
+      const parentSuite = new Suite();
+      parentSuite.addRoute('status', {
+        method: 'get',
+        route: 'status',
+        expectedStatusCode: 200,
+        maxMean: 0.2, // 200ms
+      });
+      expect(parentSuite.routes).to.deep.equals({
+        status: {
+          method: 'get',
+          route: 'status',
+          expectedStatusCode: 200,
+          maxMean: 0.2, // 200ms
+        },
+      });
+
+      // Test...
+      const childSuite = new Suite('child', parentSuite);
+      childSuite.addRoute('version', {
+        method: 'get',
+        route: 'version',
+        expectedStatusCode: 200,
+        maxMean: 0.2, // 200ms
+      });
+
+      expect(childSuite.routes).to.deep.equals({
+        status: {
+          method: 'get',
+          route: 'status',
+          expectedStatusCode: 200,
+          maxMean: 0.2, // 200ms
+        },
+        version: {
+          method: 'get',
+          route: 'version',
+          expectedStatusCode: 200,
+          maxMean: 0.2, // 200ms
+        },
+      });
+    });
   });
 
   describe('Options', () => {
@@ -69,10 +174,21 @@ describe('Suite', () => {
       expect(() => { suite.options = {}; }).to.throw(TypeError);
     });
 
+    it('should initialize to default options', () => {
+      const suite = new Suite();
+      expect(suite.options).to.deep.equals({
+        debug: false,
+        runMode: 'sequence',
+        maxConcurrentRequests: 100,
+        delay: 0,
+        maxTime: 10,
+        minSamples: 20,
+        stopOnError: true,
+      });
+    });
+
     it('should set options', () => {
       const suite = new Suite();
-      expect(suite.options).to.deep.equals({});
-
       suite.setOptions({
         debug: true,
         runMode: 'parallel',
@@ -152,6 +268,55 @@ describe('Suite', () => {
         runMode: 'sequence',
         minSamples: 20,
         maxTime: 10,
+        stopOnError: true,
+      });
+    });
+
+    it('should get options from parent suite', () => {
+      const parentSuite = new Suite();
+      parentSuite.setOptions({
+        debug: true,
+        runMode: 'parallel',
+        minSamples: 200,
+        maxTime: 20,
+      });
+
+      // Test...
+      const childSuite = new Suite('child', parentSuite);
+      expect(childSuite.options).to.deep.equals({
+        debug: true,
+        delay: 0,
+        maxConcurrentRequests: 100,
+        runMode: 'parallel',
+        minSamples: 200,
+        maxTime: 20,
+        stopOnError: true,
+      });
+    });
+
+    it('should overwrite parent options', () => {
+      const parentSuite = new Suite();
+      parentSuite.setOptions({
+        debug: true,
+        runMode: 'parallel',
+        minSamples: 200,
+        maxTime: 20,
+      });
+
+      // Test...
+      const childSuite = new Suite('child', parentSuite);
+      childSuite.setOptions({
+        runMode: 'parallel',
+        minSamples: 200,
+        maxTime: 20,
+      });
+      expect(childSuite.options).to.deep.equals({
+        debug: false,
+        delay: 0,
+        maxConcurrentRequests: 100,
+        runMode: 'parallel',
+        minSamples: 200,
+        maxTime: 20,
         stopOnError: true,
       });
     });
