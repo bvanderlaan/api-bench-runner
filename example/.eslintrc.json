@@ -1,0 +1,10 @@
+{
+  "globals": {
+    "before": false,
+    "after": false,
+    "suite": false,
+    "service": false,
+    "options": false,
+    "route": false
+  }
+}
