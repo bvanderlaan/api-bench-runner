@@ -4,6 +4,7 @@ const cli = require('commander');
 const path = require('path');
 
 require('../lib/hooks');
+const runner = require('../lib/runner');
 const { description, version } = require('../package.json');
 
 cli.version(version)
@@ -12,5 +13,6 @@ cli.version(version)
   .action((p) => {
     const absolutePath = path.resolve(p);
     require(absolutePath); // eslint-disable-line global-require, import/no-dynamic-require
+    runner.run();
   })
   .parse(process.argv);

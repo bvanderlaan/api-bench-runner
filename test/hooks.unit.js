@@ -8,7 +8,7 @@ const sinonChai = require('sinon-chai');
 
 chaiUse(sinonChai);
 
-const measureStub = sinon.stub().resolves();
+const runnerStub = sinon.stub();
 
 const {
   options,
@@ -18,8 +18,8 @@ const {
   before: myBefore,
   after: myAfter,
 } = proxyquire('../lib/hooks', {
-  './measure': {
-    measure: measureStub,
+  './runner': {
+    addSuite: runnerStub,
   },
 });
 
@@ -55,191 +55,168 @@ describe('Hooks', () => {
   describe('Suite', () => {
     it('should call the callback', () => {
       const cb = sinon.stub();
-      return suite('name', cb)
-        .then(() => {
-          expect(cb, 'callback').to.have.been.calledOnce;
-        });
+      suite('name', cb);
+      expect(cb, 'callback').to.have.been.calledOnce;
     });
 
-    describe('measure', () => {
-      mochaBefore(() => measureStub.resetHistory());
-      mochaAfter(() => measureStub.resetHistory());
+    describe('runner', () => {
+      mochaBefore(() => runnerStub.resetHistory());
+      mochaAfter(() => runnerStub.resetHistory());
 
-      it('should call measure', () => (
-        suite('name', sinon.stub())
-          .then(() => {
-            expect(measureStub, 'measure').to.have.been.calledOnce;
-          })
-      ));
+      it('should call runner', () => {
+        suite('name', sinon.stub());
+        expect(runnerStub, 'runner').to.have.been.calledOnce;
+      });
     });
 
     describe('before', () => {
-      it('should call the before callback', () => {
+      beforeEach(() => runnerStub.resetHistory());
+      afterEach(() => runnerStub.resetHistory());
+
+      it('should add the before callback to the suite', () => {
         const beforeCallback = sinon.stub();
-        return suite('name', () => {
+        suite('name', () => {
           myBefore(beforeCallback);
-        })
-          .then(() => {
-            expect(beforeCallback, 'beforeCallBack').to.have.been.calledOnce;
-          });
+        });
+        expect(runnerStub, 'runner').to.have.been.calledOnce;
+        const mySuite = runnerStub.firstCall.args[0];
+        expect(mySuite.befores).to.have.length(1);
+        expect(mySuite.befores[0]).to.equal(beforeCallback);
       });
 
-      it('should call all the before callbacks', () => {
+      it('should add all the before callbacks to the suite', () => {
         const beforeCallback = sinon.stub();
         const beforeCallback2 = sinon.stub();
         const beforeCallback3 = sinon.stub();
 
-        return suite('name', () => {
+        suite('name', () => {
           myBefore(beforeCallback);
           myBefore(beforeCallback2);
           myBefore(beforeCallback3);
-        })
-          .then(() => {
-            expect(beforeCallback, 'beforeCallBack').to.have.been.calledOnce;
-            expect(beforeCallback2, 'beforeCallBack2').to.have.been.calledOnce;
-            expect(beforeCallback3, 'beforeCallBack3').to.have.been.calledOnce;
-          });
-      });
+        });
 
-      it('should call the before callback asynchronously', () => {
-        function cb(done) {
-          done();
-        }
-        const beforeCallback = sinon.spy(cb);
-        return suite('name', () => {
-          myBefore(beforeCallback);
-        })
-          .then(() => {
-            expect(beforeCallback, 'beforeCallBack').to.have.been.calledOnce;
-          });
-      });
-
-      it('should call the before callback asynchronously via promise', () => {
-        const beforeCallback = sinon.stub().resolves(42);
-        return suite('name', () => {
-          myBefore(beforeCallback);
-        })
-          .then(() => {
-            expect(beforeCallback, 'beforeCallBack').to.have.been.calledOnce;
-          });
+        expect(runnerStub, 'runner').to.have.been.calledOnce;
+        const mySuite = runnerStub.firstCall.args[0];
+        expect(mySuite.befores).to.have.length(3);
+        expect(mySuite.befores[0], 'beforeCallBack').to.equal(beforeCallback);
+        expect(mySuite.befores[1], 'beforeCallBack2').to.equal(beforeCallback2);
+        expect(mySuite.befores[2], 'beforeCallBack3').to.equal(beforeCallback3);
       });
     });
 
     describe('after', () => {
-      it('should call the after callback', () => {
+      beforeEach(() => runnerStub.resetHistory());
+      afterEach(() => runnerStub.resetHistory());
+
+      it('should add the after callback to the suite', () => {
         const afterCallback = sinon.stub();
-        return suite('name', () => {
+        suite('name', () => {
           myAfter(afterCallback);
-        })
-          .then(() => {
-            expect(afterCallback, 'afterCallback').to.have.been.calledOnce;
-          });
+        });
+
+        expect(runnerStub, 'runner').to.have.been.calledOnce;
+        const mySuite = runnerStub.firstCall.args[0];
+        expect(mySuite.afters).to.have.length(1);
+        expect(mySuite.afters[0], 'afterCallback').to.equal(afterCallback);
       });
 
-      it('should call all the after callbacks', () => {
+      it('should add all the after callbacks to the suite', () => {
         const afterCallback = sinon.stub();
         const afterCallback2 = sinon.stub();
         const afterCallback3 = sinon.stub();
 
-        return suite('name', () => {
+        suite('name', () => {
           myAfter(afterCallback);
           myAfter(afterCallback2);
           myAfter(afterCallback3);
-        })
-          .then(() => {
-            expect(afterCallback, 'afterCallback').to.have.been.calledOnce;
-            expect(afterCallback2, 'afterCallback2').to.have.been.calledOnce;
-            expect(afterCallback3, 'afterCallback3').to.have.been.calledOnce;
-          });
+        });
+
+        expect(runnerStub, 'runner').to.have.been.calledOnce;
+        const mySuite = runnerStub.firstCall.args[0];
+        expect(mySuite.afters).to.have.length(3);
+        expect(mySuite.afters[0], 'afterCallback').to.equal(afterCallback);
+        expect(mySuite.afters[1], 'afterCallback2').to.equal(afterCallback2);
+        expect(mySuite.afters[2], 'afterCallback3').to.equal(afterCallback3);
+      });
+    });
+
+    describe('Hierarchy', () => {
+      beforeEach(() => runnerStub.resetHistory());
+      afterEach(() => runnerStub.resetHistory());
+
+      it('should set child suite to parent', () => {
+        suite('parent', () => {
+          suite('child', sinon.stub());
+        });
+
+        const parentSuite = runnerStub.secondCall.args[0];
+        const childSuite = runnerStub.firstCall.args[0];
+        expect(parentSuite.title, 'parent').to.equal('parent');
+        expect(childSuite.parent.title, 'child').to.equal('parent');
       });
 
-      it('should call the after callback asynchronously', () => {
-        function cb(done) {
-          done();
-        }
-        const afterCallback3 = sinon.spy(cb);
-        return suite('name', () => {
-          myAfter(afterCallback3);
-        })
-          .then(() => {
-            expect(afterCallback3, 'afterCallback3').to.have.been.calledOnce;
-          });
-      });
+      it('should set sibling suites to same parent', () => {
+        suite('parent', () => {
+          suite('child1', sinon.stub());
+          suite('child2', sinon.stub());
+        });
 
-      it('should call the after callback asynchronously via promise', () => {
-        const afterCallback3 = sinon.stub().resolves(42);
-        return suite('name', () => {
-          myAfter(afterCallback3);
-        })
-          .then((t) => {
-            expect(t).to.equal(42);
-            expect(afterCallback3, 'afterCallback3').to.have.been.calledOnce;
-          });
+        const parentSuite = runnerStub.thirdCall.args[0];
+        const child1Suite = runnerStub.firstCall.args[0];
+        const child2Suite = runnerStub.secondCall.args[0];
+        expect(parentSuite.title, 'parent').to.equal('parent');
+        expect(child1Suite.parent.title, 'child1').to.equal('parent');
+        expect(child2Suite.parent.title, 'child2').to.equal('parent');
       });
     });
   });
 
   describe('Service', () => {
-    beforeEach(() => measureStub.resetHistory());
-    afterEach(() => measureStub.resetHistory());
+    beforeEach(() => runnerStub.resetHistory());
+    afterEach(() => runnerStub.resetHistory());
 
-    it('should set service', () => (
+    it('should add a set service hook', () => {
       suite('name', () => {
         service('my-service', 'http://localhost:8080');
-      })
-        .then(() => {
-          expect(measureStub, 'measure').to.have.been.calledOnce;
-          const theSuite = measureStub.firstCall.args[0];
-          expect(theSuite.services).to.deep.equals({
-            'my-service': 'http://localhost:8080',
-          });
-        })
-    ));
+      });
 
-    it('should set service after the before hook', () => {
-      let url;
-      return suite('name', () => {
-        myBefore(() => { url = 'http://localhost:8080'; });
-        service('my-service', () => url);
-      })
-        .then(() => {
-          expect(measureStub, 'measure').to.have.been.calledOnce;
-          const theSuite = measureStub.firstCall.args[0];
-          expect(theSuite.services).to.deep.equals({
-            'my-service': 'http://localhost:8080',
-          });
-        });
+      expect(runnerStub, 'runner').to.have.been.calledOnce;
+      const mySuite = runnerStub.firstCall.args[0];
+      expect(mySuite.setServiceHooks).to.have.length(1);
+      expect(mySuite.setServiceHooks[0], 'setServiceHooks').to.be.an('function');
+      mySuite.setServiceHooks[0]();
+      expect(mySuite.services).to.deep.equal({
+        'my-service': 'http://localhost:8080',
+      });
     });
   });
 
   describe('Options', () => {
-    beforeEach(() => measureStub.resetHistory());
-    afterEach(() => measureStub.resetHistory());
+    beforeEach(() => runnerStub.resetHistory());
+    afterEach(() => runnerStub.resetHistory());
 
-    it('should set options', () => (
+    it('should set options', () => {
       suite('name', () => {
         options({
           runMode: 'parallel',
           minSamples: 200,
           maxTime: 20,
         });
-      })
-        .then(() => {
-          expect(measureStub, 'measure').to.have.been.calledOnce;
-          const theSuite = measureStub.firstCall.args[0];
-          expect(theSuite.options).to.deep.equals({
-            debug: false,
-            delay: 0,
-            maxConcurrentRequests: 100,
-            runMode: 'parallel',
-            minSamples: 200,
-            maxTime: 20,
-            stopOnError: true,
-          });
-        })
-    ));
+      });
+      expect(runnerStub, 'runner').to.have.been.calledOnce;
+      const mySuite = runnerStub.firstCall.args[0];
+      expect(mySuite.options).to.deep.equals({
+        debug: false,
+        delay: 0,
+        maxConcurrentRequests: 100,
+        runMode: 'parallel',
+        minSamples: 200,
+        maxTime: 20,
+        stopOnError: true,
+      });
+    });
 
-    it('should set options and respect debug', () => (
+    it('should set options and respect debug', () => {
       suite('name', () => {
         options({
           debug: false,
@@ -247,28 +224,27 @@ describe('Hooks', () => {
           minSamples: 200,
           maxTime: 20,
         });
-      })
-        .then(() => {
-          expect(measureStub, 'measure').to.have.been.calledOnce;
-          const theSuite = measureStub.firstCall.args[0];
-          expect(theSuite.options).to.deep.equals({
-            debug: false,
-            delay: 0,
-            maxConcurrentRequests: 100,
-            runMode: 'parallel',
-            minSamples: 200,
-            maxTime: 20,
-            stopOnError: true,
-          });
-        })
-    ));
+      });
+
+      expect(runnerStub, 'runner').to.have.been.calledOnce;
+      const mySuite = runnerStub.firstCall.args[0];
+      expect(mySuite.options).to.deep.equals({
+        debug: false,
+        delay: 0,
+        maxConcurrentRequests: 100,
+        runMode: 'parallel',
+        minSamples: 200,
+        maxTime: 20,
+        stopOnError: true,
+      });
+    });
   });
 
   describe('Route', () => {
-    beforeEach(() => measureStub.resetHistory());
-    afterEach(() => measureStub.resetHistory());
+    beforeEach(() => runnerStub.resetHistory());
+    afterEach(() => runnerStub.resetHistory());
 
-    it('should set route', () => (
+    it('should set route', () => {
       suite('name', () => {
         route('status', {
           method: 'get',
@@ -276,19 +252,18 @@ describe('Hooks', () => {
           expectedStatusCode: 200,
           maxMean: 0.2, // 200ms
         });
-      })
-        .then(() => {
-          expect(measureStub, 'measure').to.have.been.calledOnce;
-          const theSuite = measureStub.firstCall.args[0];
-          expect(theSuite.routes).to.deep.equals({
-            status: {
-              method: 'get',
-              route: 'status',
-              expectedStatusCode: 200,
-              maxMean: 0.2, // 200ms
-            },
-          });
-        })
-    ));
+      });
+
+      expect(runnerStub, 'runner').to.have.been.calledOnce;
+      const mySuite = runnerStub.firstCall.args[0];
+      expect(mySuite.routes).to.deep.equals({
+        status: {
+          method: 'get',
+          route: 'status',
+          expectedStatusCode: 200,
+          maxMean: 0.2, // 200ms
+        },
+      });
+    });
   });
 });
