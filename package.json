@@ -31,6 +31,8 @@
     "sinon-chai": "^2.14.0"
   },
   "dependencies": {
-    "api-benchmark": "^0.4.2"
+    "api-benchmark": "^0.4.2",
+    "bluebird": "^3.5.1",
+    "cli-color": "^1.2.0"
   }
 }

@@ -3,6 +3,7 @@
     "mocha": true
   },
   "rules": {
-    "no-unused-expressions": "off" // Turn off: work around to make eslint chai friendly; expect(x).to.be.undefined will trigger rule
+    "no-unused-expressions": "off", // Turn off: work around to make eslint chai friendly; expect(x).to.be.undefined will trigger rule
+    "max-len": [1, 180]
   }
 }
