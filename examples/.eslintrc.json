@@ -5,6 +5,7 @@
     "suite": false,
     "service": false,
     "options": false,
-    "route": false
+    "route": false,
+    "rootSuite": false
   }
 }

@@ -14,7 +14,14 @@ cli.version(version)
   .parse(process.argv);
 
 const pattern = cli.args[0] || 'bench/';
-glob(pattern, { realpath: true })
+
+glob('**/setup.js', { realpath: true })
+  .then((paths) => {
+    if (paths[0]) {
+      require(paths[0]); // eslint-disable-line global-require, import/no-dynamic-require
+    }
+  })
+  .then(() => glob([pattern, '!**/setup.js'], { realpath: true }))
   // eslint-disable-next-line global-require, import/no-dynamic-require
   .then(paths => paths.map(file => require(file)))
   .then(() => runner.run());

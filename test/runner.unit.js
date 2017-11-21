@@ -166,4 +166,43 @@ describe('Runner', () => {
         });
     });
   });
+
+  describe('Add Root Suite', () => {
+    afterEach(() => runner.clearRootSuite());
+
+    it('should allow one root', () => {
+      expect(() => runner.addRootSuite(new Suite()))
+        .to.not.throw();
+    });
+
+    it('should not allow multiple roots', () => {
+      runner.addRootSuite(new Suite());
+      expect(() => runner.addRootSuite(new Suite()))
+        .to.throw('To many roots');
+    });
+
+    it('should call the roots after callback', () => {
+      const afterCallback = sinon.stub();
+      const suite = new Suite();
+      suite.addAfter(afterCallback);
+
+      runner.addRootSuite(suite);
+      return runner.run()
+        .then(() => {
+          expect(afterCallback, 'afterCallback').to.have.been.calledOnce;
+        });
+    });
+
+    it('should call the roots before callback', () => {
+      const beforeCallback = sinon.stub();
+      const suite = new Suite();
+      suite.addBefore(beforeCallback);
+
+      runner.addRootSuite(suite);
+      return runner.run()
+        .then(() => {
+          expect(beforeCallback, 'beforeCallBack').to.have.been.calledOnce;
+        });
+    });
+  });
 });
