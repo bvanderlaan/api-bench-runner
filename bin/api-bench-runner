@@ -7,6 +7,7 @@ require('../lib/hooks');
 const runner = require('../lib/runner');
 const { description, version } = require('../package.json');
 const log = require('../lib/logger');
+const reporters = require('../lib/reporters');
 
 cli.version(version)
   .description(description)
@@ -33,5 +34,5 @@ glob('**/setup.js', { realpath: true })
   })
   // eslint-disable-next-line global-require, import/no-dynamic-require
   .then(paths => paths.map(file => require(file)))
-  .then(() => runner.run());
+  .then(() => runner.run(reporters.default));
 
