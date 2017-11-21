@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const cli = require('commander');
-const path = require('path');
+const glob = require('globby');
 
 require('../lib/hooks');
 const runner = require('../lib/runner');
@@ -10,9 +10,10 @@ const { description, version } = require('../package.json');
 cli.version(version)
   .description(description)
   .usage('api-bench-runner <path>')
-  .action((p) => {
-    const absolutePath = path.resolve(p);
-    require(absolutePath); // eslint-disable-line global-require, import/no-dynamic-require
-    runner.run();
-  })
+  .action(pattern => (
+    glob(pattern, { realpath: true })
+      // eslint-disable-next-line global-require, import/no-dynamic-require
+      .then(paths => paths.map(file => require(file)))
+      .then(() => runner.run())
+  ))
   .parse(process.argv);
