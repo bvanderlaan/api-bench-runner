@@ -2,7 +2,7 @@
 
 const express = require('express'); // eslint-disable-line import/no-extraneous-dependencies
 
-const { version } = require('../../package.json');
+const { version } = require('../../../package.json');
 
 const port = process.env.APP_PORT || 8080;
 const app = express();
