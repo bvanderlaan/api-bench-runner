@@ -7,13 +7,15 @@ require('../lib/hooks');
 const runner = require('../lib/runner');
 const { description, version } = require('../package.json');
 
+
 cli.version(version)
   .description(description)
-  .usage('api-bench-runner <path>')
-  .action(pattern => (
-    glob(pattern, { realpath: true })
-      // eslint-disable-next-line global-require, import/no-dynamic-require
-      .then(paths => paths.map(file => require(file)))
-      .then(() => runner.run())
-  ))
+  .usage('[path]')
   .parse(process.argv);
+
+const pattern = cli.args[0] || 'bench/';
+glob(pattern, { realpath: true })
+  // eslint-disable-next-line global-require, import/no-dynamic-require
+  .then(paths => paths.map(file => require(file)))
+  .then(() => runner.run());
+
