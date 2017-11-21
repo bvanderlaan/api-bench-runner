@@ -1,8 +1,12 @@
+'use strict';
+
+const requireCacheBuster = require('require-cache-buster'); // eslint-disable-line import/no-extraneous-dependencies
+
 suite('Nested Status Test', () => {
   let server;
 
   before((done) => {
-    server = require('./simple-server/server'); // eslint-disable-line global-require
+    server = requireCacheBuster(`${__dirname}/simple-server/server`); // eslint-disable-line global-require
     server.once('listening', () => {
       done();
     });
