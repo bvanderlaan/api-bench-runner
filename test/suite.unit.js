@@ -1,8 +1,12 @@
 'use strict';
 
-const { expect } = require('chai');
+const { expect, use: chaiUse } = require('chai');
+const sinon = require('sinon');
+const sinonChai = require('sinon-chai');
 
 const Suite = require('../lib/suite');
+
+chaiUse(sinonChai);
 
 describe('Suite', () => {
   describe('Title', () => {
@@ -62,6 +66,25 @@ describe('Suite', () => {
       const childSuite = new Suite('child', parentSuite);
       childSuite.addServiceHook('my other service', 'http://localhost:5678');
       childSuite.setServiceHooks[0]();
+
+      expect(childSuite.services).to.deep.equals({
+        'my service': 'http://localhost:1234',
+        'my other service': 'http://localhost:5678',
+      });
+    });
+
+    it('should concat child and parent services even if parent added service later', () => {
+      const parentSuite = new Suite();
+      parentSuite.addServiceHook('my service', 'http://localhost:1234');
+
+      const childSuite = new Suite('child', parentSuite);
+      childSuite.addServiceHook('my other service', 'http://localhost:5678');
+      childSuite.setServiceHooks[0]();
+
+      parentSuite.setServiceHooks[0]();
+      expect(parentSuite.services).to.deep.equals({
+        'my service': 'http://localhost:1234',
+      });
 
       expect(childSuite.services).to.deep.equals({
         'my service': 'http://localhost:1234',
@@ -371,6 +394,186 @@ describe('Suite', () => {
 
       suite.addBefore(42);
       expect(suite.befores).to.have.length(0);
+    });
+  });
+
+  describe('Invoke Service Hook', () => {
+    it('should call service hook', () => {
+      const serviceCallback = sinon.stub();
+      const suite = new Suite();
+      suite.addServiceHook('name', serviceCallback);
+      expect(suite.setServiceHooks).to.have.length(1);
+
+      return suite.invokeServiceHooks()
+        .then(() => {
+          expect(serviceCallback).to.have.been.calledOnce;
+        });
+    });
+
+    it('should call parents service hook', () => {
+      const serviceCallback = sinon.stub();
+      const parentSuite = new Suite('parent');
+      parentSuite.addServiceHook('name', serviceCallback);
+      expect(parentSuite.setServiceHooks).to.have.length(1);
+
+      const childSuite = new Suite('child', parentSuite);
+      expect(childSuite.setServiceHooks).to.be.empty;
+
+      return childSuite.invokeServiceHooks()
+        .then(() => {
+          expect(serviceCallback).to.have.been.calledOnce;
+        });
+    });
+
+    it('should call both parent and child\'s service hooks', () => {
+      const serviceCallback = sinon.stub();
+      const parentSuite = new Suite('parent');
+      parentSuite.addServiceHook('name', serviceCallback);
+      expect(parentSuite.setServiceHooks).to.have.length(1);
+
+      const serviceCallback2 = sinon.stub();
+      const childSuite = new Suite('child', parentSuite);
+      childSuite.addServiceHook('name', serviceCallback2);
+      expect(childSuite.setServiceHooks).to.have.length(1);
+
+      return childSuite.invokeServiceHooks()
+        .then(() => {
+          expect(serviceCallback, 'parent hook').to.have.been.calledOnce;
+          expect(serviceCallback2, 'child hook').to.have.been.calledOnce;
+        });
+    });
+
+    it('should not call service hook twice', () => {
+      const serviceCallback = sinon.stub();
+      const suite = new Suite('me');
+      suite.addServiceHook('name', serviceCallback);
+      expect(suite.setServiceHooks).to.have.length(1);
+
+      return suite.invokeServiceHooks()
+        .then(() => suite.invokeServiceHooks())
+        .then(() => {
+          expect(serviceCallback).to.have.been.calledOnce;
+        });
+    });
+  });
+
+  describe('Invoke Befores', () => {
+    it('should call before hook', () => {
+      const beforeCallback = sinon.stub();
+      const suite = new Suite();
+      suite.addBefore(beforeCallback);
+      expect(suite.befores).to.have.length(1);
+
+      return suite.invokeBefores()
+        .then(() => {
+          expect(beforeCallback).to.have.been.calledOnce;
+        });
+    });
+
+    it('should call parents before hook', () => {
+      const beforeCallback = sinon.stub();
+      const parentSuite = new Suite('parent');
+      parentSuite.addBefore(beforeCallback);
+      expect(parentSuite.befores).to.have.length(1);
+
+      const childSuite = new Suite('child', parentSuite);
+      expect(childSuite.befores).to.be.empty;
+
+      return childSuite.invokeBefores()
+        .then(() => {
+          expect(beforeCallback).to.have.been.calledOnce;
+        });
+    });
+
+    it('should call both parent and child\'s before hooks', () => {
+      const beforeCallback = sinon.stub();
+      const parentSuite = new Suite('parent');
+      parentSuite.addBefore(beforeCallback);
+      expect(parentSuite.befores).to.have.length(1);
+
+      const beforeCallback2 = sinon.stub();
+      const childSuite = new Suite('child', parentSuite);
+      childSuite.addBefore(beforeCallback2);
+      expect(childSuite.befores).to.have.length(1);
+
+      return childSuite.invokeBefores()
+        .then(() => {
+          expect(beforeCallback, 'parent hook').to.have.been.calledOnce;
+          expect(beforeCallback2, 'child hook').to.have.been.calledOnce;
+        });
+    });
+
+    it('should not call before hook twice', () => {
+      const beforeCallback = sinon.stub();
+      const suite = new Suite();
+      suite.addBefore(beforeCallback);
+      expect(suite.befores).to.have.length(1);
+
+      return suite.invokeBefores()
+        .then(() => suite.invokeBefores())
+        .then(() => {
+          expect(beforeCallback).to.have.been.calledOnce;
+        });
+    });
+  });
+
+  describe('Invoke Afters', () => {
+    it('should call after hook', () => {
+      const afterCallback = sinon.stub();
+      const suite = new Suite();
+      suite.addAfter(afterCallback);
+      expect(suite.afters).to.have.length(1);
+
+      return suite.invokeAfters()
+        .then(() => {
+          expect(afterCallback).to.have.been.calledOnce;
+        });
+    });
+
+    it('should not call parents after hook', () => {
+      const afterCallback = sinon.stub();
+      const parentSuite = new Suite('parent');
+      parentSuite.addAfter(afterCallback);
+      expect(parentSuite.afters).to.have.length(1);
+
+      const childSuite = new Suite('child', parentSuite);
+      expect(childSuite.afters).to.be.empty;
+
+      return childSuite.invokeAfters()
+        .then(() => {
+          expect(afterCallback).to.have.not.been.called;
+        });
+    });
+
+    it('should call only the child\'s after hooks', () => {
+      const afterCallback = sinon.stub();
+      const parentSuite = new Suite('parent');
+      parentSuite.addAfter(afterCallback);
+      expect(parentSuite.afters).to.have.length(1);
+
+      const afterCallback2 = sinon.stub();
+      const childSuite = new Suite('child', parentSuite);
+      childSuite.addAfter(afterCallback2);
+      expect(childSuite.afters).to.have.length(1);
+
+      return childSuite.invokeAfters()
+        .then(() => {
+          expect(afterCallback, 'parent hook').to.have.not.been.called;
+          expect(afterCallback2, 'child hook').to.have.been.calledOnce;
+        });
+    });
+
+    it('should not call after hook twice', () => {
+      const afterCallback = sinon.stub();
+      const suite = new Suite();
+      suite.addAfter(afterCallback);
+      expect(suite.afters).to.have.length(1);
+
+      return suite.invokeAfters()
+        .then(() => suite.invokeAfters())
+        .then(() => {
+          expect(afterCallback).to.have.been.calledOnce;
+        });
     });
   });
 });
