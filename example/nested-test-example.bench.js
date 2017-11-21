@@ -1,4 +1,4 @@
-suite('Status', () => {
+suite('Nested Status Test', () => {
   let server;
 
   before((done) => {
@@ -8,13 +8,14 @@ suite('Status', () => {
     });
   });
 
-  after(() => {
+  after((done) => {
     server.close((err) => {
       if (err) {
         console.log('Error shutting down server'); // eslint-disable-line no-console
       } else {
         console.log('Server shutdown'); // eslint-disable-line no-console
       }
+      done();
     });
   });
 
