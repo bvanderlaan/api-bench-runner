@@ -7,6 +7,9 @@ const sinonChai = require('sinon-chai');
 
 const Suite = require('../lib/suite');
 
+const reporterStub = {
+  summary: sinon.stub(),
+};
 const measureStub = sinon.stub();
 const runner = proxyquire('../lib/runner', {
   './measure': {
@@ -24,7 +27,7 @@ describe('Runner', () => {
       suite.addBefore(beforeCallback);
 
       runner.addSuite(suite);
-      return runner.run()
+      return runner.run(reporterStub)
         .then(() => {
           expect(beforeCallback, 'beforeCallBack').to.have.been.calledOnce;
         });
@@ -41,7 +44,7 @@ describe('Runner', () => {
       suite.addBefore(beforeCallback3);
 
       runner.addSuite(suite);
-      return runner.run()
+      return runner.run(reporterStub)
         .then(() => {
           expect(beforeCallback, 'beforeCallBack').to.have.been.calledOnce;
           expect(beforeCallback2, 'beforeCallBack2').to.have.been.calledOnce;
@@ -58,7 +61,7 @@ describe('Runner', () => {
       suite.addBefore(beforeCallback);
 
       runner.addSuite(suite);
-      return runner.run()
+      return runner.run(reporterStub)
         .then(() => {
           expect(beforeCallback, 'beforeCallBack').to.have.been.calledOnce;
         });
@@ -70,7 +73,7 @@ describe('Runner', () => {
       suite.addBefore(beforeCallback);
 
       runner.addSuite(suite);
-      return runner.run()
+      return runner.run(reporterStub)
         .then(() => {
           expect(beforeCallback, 'beforeCallBack').to.have.been.calledOnce;
         });
@@ -84,7 +87,7 @@ describe('Runner', () => {
       suite.addAfter(afterCallback);
 
       runner.addSuite(suite);
-      return runner.run()
+      return runner.run(reporterStub)
         .then(() => {
           expect(afterCallback, 'afterCallback').to.have.been.calledOnce;
         });
@@ -101,7 +104,7 @@ describe('Runner', () => {
       suite.addAfter(afterCallback3);
 
       runner.addSuite(suite);
-      return runner.run()
+      return runner.run(reporterStub)
         .then(() => {
           expect(afterCallback, 'afterCallback').to.have.been.calledOnce;
           expect(afterCallback2, 'afterCallback2').to.have.been.calledOnce;
@@ -118,7 +121,7 @@ describe('Runner', () => {
       suite.addAfter(afterCallback);
 
       runner.addSuite(suite);
-      return runner.run()
+      return runner.run(reporterStub)
         .then(() => {
           expect(afterCallback, 'afterCallback').to.have.been.calledOnce;
         });
@@ -130,7 +133,7 @@ describe('Runner', () => {
       suite.addAfter(afterCallback);
 
       runner.addSuite(suite);
-      return runner.run()
+      return runner.run(reporterStub)
         .then(() => {
           expect(afterCallback, 'afterCallback').to.have.been.calledOnce;
         });
@@ -143,7 +146,7 @@ describe('Runner', () => {
       suite.addServiceHook('my-service', 'http://localhost:8080');
 
       runner.addSuite(suite);
-      return runner.run()
+      return runner.run(reporterStub)
         .then(() => {
           expect(suite.services).to.deep.equals({
             'my-service': 'http://localhost:8080',
@@ -158,7 +161,7 @@ describe('Runner', () => {
       suite.addServiceHook('my-service', () => url);
 
       runner.addSuite(suite);
-      return runner.run()
+      return runner.run(reporterStub)
         .then(() => {
           expect(suite.services).to.deep.equals({
             'my-service': 'http://localhost:8080',
@@ -187,7 +190,7 @@ describe('Runner', () => {
       suite.addAfter(afterCallback);
 
       runner.addRootSuite(suite);
-      return runner.run()
+      return runner.run(reporterStub)
         .then(() => {
           expect(afterCallback, 'afterCallback').to.have.been.calledOnce;
         });
@@ -199,7 +202,7 @@ describe('Runner', () => {
       suite.addBefore(beforeCallback);
 
       runner.addRootSuite(suite);
-      return runner.run()
+      return runner.run(reporterStub)
         .then(() => {
           expect(beforeCallback, 'beforeCallBack').to.have.been.calledOnce;
         });
