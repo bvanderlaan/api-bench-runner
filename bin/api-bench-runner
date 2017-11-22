@@ -20,7 +20,7 @@ const pattern = cli.args[0] || 'bench/';
 const logLevel = cli.level || 'info';
 log.setLevel(logLevel);
 
-glob('**/setup.js', { realpath: true })
+glob('bench/setup.js', { realpath: true })
   .then((paths) => {
     if (paths[0]) {
       log.debug('Generate Setup Suite');
