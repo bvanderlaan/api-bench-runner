@@ -34,5 +34,5 @@ glob('bench/setup.js', { realpath: true })
   })
   // eslint-disable-next-line global-require, import/no-dynamic-require
   .then(paths => paths.map(file => require(file)))
-  .then(() => runner.run(reporters.default));
+  .then(() => runner.run(reporters.getReporter('default')));
 
