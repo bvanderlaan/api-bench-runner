@@ -14,9 +14,10 @@ chaiUse(chaiAsPromised);
 
 const { measure } = require('../lib/measure');
 
-function createLoggerStub() {
+function createReporterStub() {
   return {
-    log: sinon.stub(),
+    suite: sinon.stub(),
+    results: sinon.stub(),
     error: sinon.stub(),
   };
 }
@@ -41,7 +42,7 @@ describe('Measure', () => {
         minSamples: 200,
         maxTime: 20,
       });
-      const reporter = createLoggerStub();
+      const reporter = createReporterStub();
 
       return theSuite.invokeServiceHooks()
         .then(() => expect(measure(theSuite, reporter))
@@ -68,7 +69,7 @@ describe('Measure', () => {
         maxTime: 20,
       });
 
-      const reporter = createLoggerStub();
+      const reporter = createReporterStub();
 
       return expect(measure(theSuite, reporter))
         .to.eventually.be.fulfilled
@@ -88,7 +89,7 @@ describe('Measure', () => {
         maxTime: 20,
       });
 
-      const reporter = createLoggerStub();
+      const reporter = createReporterStub();
 
       return theSuite.invokeServiceHooks()
         .then(() => expect(measure(theSuite, reporter))
@@ -108,7 +109,7 @@ describe('Measure', () => {
         maxMean: 0.2, // 200ms
       });
 
-      const reporter = createLoggerStub();
+      const reporter = createReporterStub();
 
       return theSuite.invokeServiceHooks()
         .then(() => expect(measure(theSuite, reporter))
@@ -141,14 +142,14 @@ describe('Measure', () => {
         maxTime: 20,
       });
 
-      const reporter = createLoggerStub();
+      const reporter = createReporterStub();
 
       return theSuite.invokeServiceHooks()
         .then(() => expect(measure(theSuite, reporter))
           .to.eventually.be.fulfilled)
         .then(() => {
-          expect(reporter.log).to.have.been.called;
-          expect(reporter.log).to.have.been.calledWith('name');
+          expect(reporter.suite).to.have.been.called;
+          expect(reporter.suite).to.have.been.calledWith('name');
         });
     });
   });
@@ -173,14 +174,13 @@ describe('Measure', () => {
         maxTime: 20,
       });
 
-      const reporter = createLoggerStub();
+      const reporter = createReporterStub();
 
       return theSuite.invokeServiceHooks()
         .then(() => expect(measure(theSuite, reporter))
           .to.eventually.be.fulfilled)
         .then(() => {
-          expect(reporter.log).to.have.been.called;
-          expect(reporter.log).to.have.been.calledWith('Done');
+          expect(reporter.results).to.have.been.called;
         });
     });
   });
@@ -205,14 +205,16 @@ describe('Measure', () => {
         maxTime: 20,
       });
 
-      const reporter = createLoggerStub();
+      const reporter = createReporterStub();
 
       return theSuite.invokeServiceHooks()
         .then(() => expect(measure(theSuite, reporter))
-          .to.eventually.be.rejected)
+          .to.eventually.be.fulfilled)
         .then(() => {
           expect(reporter.error).to.have.been.called;
-          expect(reporter.error).to.have.been.calledWith('Done with errors: Error: boo');
+          expect(reporter.error)
+            .to.have.been.calledWith(sinon.match.instanceOf(Error)
+              .and(sinon.match.has('message', 'boo')));
         });
     });
   });
