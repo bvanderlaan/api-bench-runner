@@ -1,7 +1,7 @@
 'use strict';
 
 suite('Nested Status Test', () => {
-  suite('Parallel', () => {
+  suite('Multiple requests in Parallel', () => {
     options({
       runMode: 'parallel',
       minSamples: 200,
@@ -16,7 +16,7 @@ suite('Nested Status Test', () => {
     });
   });
 
-  suite('Sequential', () => {
+  suite('Multiple requests in Sequence', () => {
     options({
       minSamples: 200,
       maxTime: 20,
