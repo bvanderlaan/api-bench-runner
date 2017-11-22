@@ -213,7 +213,7 @@ describe('Measure', () => {
         .then(() => {
           expect(reporter.error).to.have.been.called;
           expect(reporter.error)
-            .to.have.been.calledWith(sinon.match.instanceOf(Error)
+            .to.have.been.calledWith('name', sinon.match.instanceOf(Error)
               .and(sinon.match.has('message', 'boo')));
         });
     });
