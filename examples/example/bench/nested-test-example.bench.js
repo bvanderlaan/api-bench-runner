@@ -27,7 +27,6 @@ suite('Nested Status Test', () => {
 
   suite('Parallel', () => {
     options({
-      debug: true,
       runMode: 'parallel',
       minSamples: 200,
       maxTime: 20,
@@ -43,7 +42,6 @@ suite('Nested Status Test', () => {
 
   suite('Sequential', () => {
     options({
-      debug: true,
       minSamples: 200,
       maxTime: 20,
     });

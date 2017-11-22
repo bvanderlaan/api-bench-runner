@@ -2,7 +2,6 @@
 
 suite('Simple Status Test', () => {
   options({
-    debug: true,
     runMode: 'parallel',
     minSamples: 200,
     maxTime: 20,

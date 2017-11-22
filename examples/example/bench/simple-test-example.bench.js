@@ -26,7 +26,6 @@ suite('Simple Status Test', () => {
   service('my-service', () => server.url);
 
   options({
-    debug: true,
     runMode: 'parallel',
     minSamples: 200,
     maxTime: 20,
