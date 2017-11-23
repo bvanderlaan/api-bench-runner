@@ -373,6 +373,23 @@ The `setup.js` file is expected to live under the `bench` folder of the working 
 
 If you run `api-bench-runner` in the project root it will looks for `bench/setup.js` and add it as the root suite for all the defined tests. If it is not found then no global setup/tear down hooks will be setup.
 
+You can however tell `api-bench-runner` where to local the global setup script via the `--setup` flag if you choose to have a different folder structure.
+
+```
+├── test
+│   ├── nested-test-example.bench.js
+│   └── simple-test-example.bench.js
+├── setup.js
+└── lib
+    └── server.js
+```
+
+Given the above structure you can execute the following command to find all the right scripts:
+
+```
+> node_modules/.bin/api-bench-runner ./test/*.bench.js --setup ./setup.js
+```
+
 ### Troubleshooting
 
 If your tests are not running correctly and you suspect there is something wrong with the hooks (_did the service come up?_) or otherwise just want to see more info on what is going on there are two options:

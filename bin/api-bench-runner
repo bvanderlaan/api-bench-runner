@@ -15,22 +15,28 @@ cli.version(version)
   .option('-l, --level <level>', 'Set the log level. Defaults to info')
   .option('-r, --reporter <reporter>', 'Define the reporter to use. Defaults to stdterm')
   .option('-o, --out <file>', 'Set the output file. Will overwrite. Defaults to benchmarks.html')
+  .option('-s, --setup <file>', 'Path to the global setup file')
   .parse(process.argv);
 
 const pattern = cli.args[0] || 'bench/';
+const setup = cli.setup || 'bench/setup.js';
 const reporter = cli.reporter || 'default';
 const output = cli.out;
 const logLevel = cli.level || 'info';
 log.setLevel(logLevel);
 
-glob('bench/setup.js', { realpath: true })
+log.debug(`Looking for global setup file here: ${setup}`);
+
+glob(setup, { realpath: true })
   .then((paths) => {
     if (paths[0]) {
       log.debug('Generate Setup Suite');
-      require(paths[0]); // eslint-disable-line global-require, import/no-dynamic-require
+      return require(paths[0]); // eslint-disable-line global-require, import/no-dynamic-require
     }
+    log.debug('No global setup suite found');
+    return undefined;
   })
-  .then(() => glob([pattern, '!**/setup.js'], { realpath: true }))
+  .then(() => glob([pattern, `!${setup}`], { realpath: true }))
   .then((paths) => {
     log.debug('Found test files: {blue:[}{yellow:%s}{blue:]}', paths.toString());
     return paths;
