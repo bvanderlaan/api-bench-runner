@@ -13,10 +13,13 @@ cli.version(version)
   .description(description)
   .usage('[path]')
   .option('-l, --level <level>', 'Set the log level. Defaults to info')
+  .option('-r, --reporter <reporter>', 'Define the reporter to use. Defaults to stdterm')
+  .option('-o, --out <file>', 'Set the output file. Will overwrite. Defaults to benchmarks.html')
   .parse(process.argv);
 
 const pattern = cli.args[0] || 'bench/';
-
+const reporter = cli.reporter || 'default';
+const output = cli.out;
 const logLevel = cli.level || 'info';
 log.setLevel(logLevel);
 
@@ -34,5 +37,5 @@ glob('bench/setup.js', { realpath: true })
   })
   // eslint-disable-next-line global-require, import/no-dynamic-require
   .then(paths => paths.map(file => require(file)))
-  .then(() => runner.run(reporters.getReporter('default')));
+  .then(() => runner.run(reporters.getReporter(reporter, output)));
 
